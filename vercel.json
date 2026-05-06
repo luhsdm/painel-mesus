@@ -1,21 +1,18 @@
 {
   "version": 2,
   "builds": [
-    {
-      "use": "@vercel/node@3",
-      "src": "api/login.js"
-    },
-    {
-      "use": "@vercel/node@3",
-      "src": "api/logout.js"
-    },
-    {
-      "use": "@vercel/node@3",
-      "src": "api/me.js"
-    },
-    {
-      "use": "@vercel/node@3",
-      "src": "api/proxy/connector.js"
-    }
+    { "use": "@vercel/node@3", "src": "api/login.js" },
+    { "use": "@vercel/node@3", "src": "api/logout.js" },
+    { "use": "@vercel/node@3", "src": "api/me.js" },
+    { "use": "@vercel/node@3", "src": "api/proxy/connector.js" },
+    { "use": "@vercel/static", "src": "public/**" }
+  ],
+  "routes": [
+    { "src": "/api/login",            "dest": "/api/login.js" },
+    { "src": "/api/logout",           "dest": "/api/logout.js" },
+    { "src": "/api/me",               "dest": "/api/me.js" },
+    { "src": "/api/proxy/connector",  "dest": "/api/proxy/connector.js" },
+    { "src": "/login",                "dest": "/public/login.html" },
+    { "src": "/",                     "dest": "/public/index.html" }
   ]
 }
