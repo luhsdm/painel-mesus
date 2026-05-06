@@ -16,10 +16,6 @@
     {
       "use": "@vercel/node@3",
       "src": "api/proxy/connector.js"
-    },
-    {
-      "use": "@vercel/static@3",
-      "src": "public/**"
     }
   ]
 }
