@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "echo OK",
     "hash": "node scripts/hash-password.js"
   },
   "engines": {
