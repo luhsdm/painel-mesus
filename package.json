@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "echo OK",
+    "dev": "vercel dev",
+    "start": "vercel dev",
     "hash": "node scripts/hash-password.js"
   },
   "engines": {
