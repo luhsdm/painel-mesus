@@ -1,0 +1,12 @@
+{
+  "name": "painel-mesus-media",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "hash": "node scripts/hash-password.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

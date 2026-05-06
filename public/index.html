@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mesus Media — Painel de Performance</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0a0a;
+    --panel:#111418;
+    --panel-2:#161a1f;
+    --line:#23272e;
+    --text:#e8e8e8;
+    --muted:#8a8f98;
+    --gold-1:#f1d9a0;
+    --gold-2:#caa56a;
+    --gold-3:#8a6c3a;
+    --meta:#1877f2;
+    --google:#4285f4;
+    --insta:#e1306c;
+    --green:#22c55e;
+    --red:#ef4444;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif}
+  a{color:inherit}
+  .container{max-width:1400px;margin:0 auto;padding:24px}
+  header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;background:linear-gradient(180deg,#0d0d0d,#0a0a0a);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50}
+  .brand{display:flex;align-items:center;gap:14px}
+  .brand-logo{width:44px;height:44px}
+  .brand-name{font-size:18px;font-weight:700;letter-spacing:.5px;background:linear-gradient(135deg,var(--gold-1),var(--gold-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand-tag{font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
+  .header-right{display:flex;gap:10px;align-items:center}
+  .tabs{display:flex;gap:8px;background:var(--panel);padding:6px;border-radius:12px;border:1px solid var(--line)}
+  .tab{padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:600;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:8px;transition:all .15s;border:none;background:transparent}
+  .tab.active{background:linear-gradient(135deg,var(--gold-1),var(--gold-2));color:#0a0a0a}
+  .tab:hover:not(.active){color:var(--text);background:var(--panel-2)}
+  .user-box{display:flex;align-items:center;gap:10px;padding-left:14px;border-left:1px solid var(--line);margin-left:14px}
+  .user-name{color:var(--gold-1);font-size:13px;font-weight:600}
+  .user-logout{background:transparent;border:1px solid var(--line);color:var(--muted);width:34px;height:34px;border-radius:8px;cursor:pointer;font-size:14px}
+  .user-logout:hover{color:var(--text);background:var(--panel-2);border-color:var(--gold-2)}
+  .filters{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:24px 0}
+  .input,select.input{background:var(--panel);border:1px solid var(--line);color:var(--text);padding:11px 14px;border-radius:10px;font-size:14px;outline:none;min-width:180px}
+  select.input{padding-right:32px;appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23caa56a' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 10px center}
+  .input:focus{border-color:var(--gold-2)}
+  .btn{background:linear-gradient(135deg,var(--gold-1),var(--gold-2));color:#0a0a0a;border:none;padding:11px 18px;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px}
+  .btn:hover{filter:brightness(1.05)}
+  .grid{display:grid;gap:16px}
+  .grid-5{grid-template-columns:repeat(5,1fr)}
+  .grid-4{grid-template-columns:repeat(4,1fr)}
+  .grid-3{grid-template-columns:repeat(3,1fr)}
+  .grid-2{grid-template-columns:repeat(2,1fr)}
+  @media(max-width:1100px){.grid-5,.grid-4{grid-template-columns:repeat(2,1fr)}.grid-3{grid-template-columns:1fr}}
+  @media(max-width:640px){.grid-5,.grid-4,.grid-3,.grid-2{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;position:relative}
+  .card-title{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .card-value{font-size:28px;font-weight:700;color:var(--text);letter-spacing:-.5px}
+  .card-sub{font-size:12px;color:var(--muted);margin-top:6px}
+  .card-icon{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:rgba(202,165,106,.15);color:var(--gold-1)}
+  .section{margin-top:32px}
+  .section-title{font-size:18px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .section-title .pill{font-size:11px;background:var(--panel-2);color:var(--gold-1);padding:3px 8px;border-radius:99px;border:1px solid var(--line);font-weight:600}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead th{text-align:left;color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:12px;border-bottom:1px solid var(--line)}
+  tbody td{padding:12px;border-bottom:1px solid var(--line)}
+  tbody tr:hover{background:var(--panel-2);cursor:pointer}
+  .ad-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .ad-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+  .ad-card-rank{background:linear-gradient(135deg,var(--gold-1),var(--gold-2));color:#0a0a0a;padding:6px 12px;font-weight:700;display:flex;justify-content:space-between;align-items:center;font-size:13px}
+  .ad-thumb{position:relative;display:block;width:100%;aspect-ratio:1/1;overflow:hidden;background:#000;cursor:pointer}
+  .ad-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+  .ad-thumb:hover img{transform:scale(1.05)}
+  .ad-thumb-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;backdrop-filter:blur(4px);border:2px solid rgba(255,255,255,.4);transition:background .2s}
+  .ad-thumb:hover .ad-thumb-play{background:rgba(225,48,108,.8)}
+  .ad-thumb-empty{display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;background:var(--panel-2)}
+  .ad-link{display:block;text-align:center;margin-top:10px;padding:8px;background:linear-gradient(135deg,#833ab4,#e1306c,#fcb045);color:#fff;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none}
+  .ad-link:hover{filter:brightness(1.1)}
+  .ad-card-body{padding:14px;flex:1}
+  .ad-card-name{font-weight:600;margin-bottom:8px;font-size:14px;color:var(--gold-1)}
+  .ad-card-camp{font-size:11px;color:var(--muted);margin-bottom:12px;word-break:break-word}
+  .ad-card-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;color:var(--muted)}
+  .ad-card-row b{color:var(--text);font-weight:600}
+  .funnel{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px}
+  .funnel-step{padding:18px 32px;border-radius:10px;text-align:center;color:#0a0a0a;font-weight:700;background:linear-gradient(135deg,var(--gold-1),var(--gold-2))}
+  .funnel-step .step-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;font-weight:600;opacity:.85}
+  .funnel-step .step-value{font-size:24px;margin-top:4px}
+  .funnel-step .step-cost{font-size:11px;opacity:.7;margin-top:4px}
+  .funnel-conv{font-size:12px;color:var(--muted)}
+  .loader{display:flex;justify-content:center;align-items:center;padding:40px;color:var(--muted)}
+  .spinner{width:24px;height:24px;border:3px solid var(--line);border-top-color:var(--gold-2);border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .banner{background:rgba(202,165,106,.08);border:1px solid rgba(202,165,106,.3);color:var(--gold-1);padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:16px}
+  .err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ff8c8c;padding:12px 16px;border-radius:10px;font-size:13px;margin-bottom:16px}
+  .empty{text-align:center;color:var(--muted);padding:30px;font-size:13px}
+  .chart-wrap{position:relative;height:280px}
+  .ig-profile{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:16px}
+  .ig-avatar-ring{width:88px;height:88px;border-radius:50%;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);display:flex;align-items:center;justify-content:center;padding:3px}
+  .ig-avatar-inner{width:100%;height:100%;border-radius:50%;background:var(--panel-2);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:var(--gold-1)}
+  .ig-info{flex:1;min-width:240px}
+  .ig-name{font-size:18px;font-weight:700}
+  .ig-handle{color:var(--muted);font-size:13px;margin-bottom:6px}
+  .ig-bio{font-size:12px;color:var(--text);line-height:1.5;opacity:.85}
+  .ig-stats{display:flex;gap:24px}
+  .ig-stats div{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .ig-stats b{font-size:20px;color:var(--text);font-weight:700}
+  .ig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .ig-post{position:relative;aspect-ratio:1/1;overflow:hidden;border-radius:8px;background:#000;display:block;text-decoration:none;color:#fff}
+  .ig-post img{width:100%;height:100%;object-fit:cover;transition:transform .3s}
+  .ig-post:hover img{transform:scale(1.05)}
+  .ig-post-meta{position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.8));display:flex;align-items:flex-end;justify-content:space-between;padding:8px;font-size:12px;font-weight:600;opacity:0;transition:opacity .2s}
+  .ig-post:hover .ig-post-meta{opacity:1}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <svg class="brand-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#f1d9a0"/>
+          <stop offset="50%" stop-color="#caa56a"/>
+          <stop offset="100%" stop-color="#8a6c3a"/>
+        </linearGradient>
+      </defs>
+      <polygon points="20,80 35,30 50,80 42,80 35,55 28,80" fill="url(#g1)"/>
+      <polygon points="50,80 65,30 80,80 72,80 65,55 58,80" fill="url(#g1)"/>
+      <circle cx="86" cy="76" r="4" fill="url(#g1)"/>
+    </svg>
+    <div>
+      <div class="brand-name">MESUS MEDIA</div>
+      <div class="brand-tag">Painel de Performance</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="tabs" id="platformTabs">
+      <button class="tab active" data-platform="meta">Meta Ads</button>
+      <button class="tab" data-platform="google">Google Ads</button>
+      <button class="tab" data-platform="instagram">Instagram</button>
+    </div>
+    <div class="user-box">
+      <span id="userName" class="user-name">—</span>
+      <button class="user-logout" id="logoutBtn" title="Sair">↪</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="filters">
+    <select class="input" id="accountSelect">
+      <option value="__all__">📊 Todas as contas (consolidado)</option>
+    </select>
+    <input type="date" class="input" id="dateFrom" />
+    <span style="color:var(--muted)">até</span>
+    <input type="date" class="input" id="dateTo" />
+    <button class="btn" id="loadBtn">Atualizar</button>
+    <span style="margin-left:auto;color:var(--muted);font-size:12px" id="lastUpdate"></span>
+  </div>
+
+  <div id="banner"></div>
+
+  <div id="content"></div>
+
+</div>
+
+<script>
+const BASE = "/api/proxy";
+
+const PLATFORMS = {
+  meta: {
+    label: "Meta Ads",
+    connector: "facebook",
+    fields: {
+      account: ["account_id","account_name","spend","impressions","clicks","reach","date_start"],
+      detail: ["account_id","account_name","campaign","campaign_id","ad_id","ad_name","thumbnail_url","instagram_permalink_url","spend","impressions","clicks","reach","frequency","cpc","cpm","ctr","actions","cost_per_action_type","date_start","objective"],
+      demo: ["account_id","account_name","ad_id","ad_name","thumbnail_url","instagram_permalink_url","campaign","spend","impressions","clicks","reach","actions","cost_per_action_type","age","gender","date_start"]
+    }
+  },
+  google: {
+    label: "Google Ads",
+    connector: "google_ads",
+    fields: {
+      account: ["account_name","clicks","cost","conversions","impressions","date"],
+      detail: ["account_name","customer_id","campaign","campaign_id","clicks","cost","conversions","impressions","ctr","cpc","date"]
+    }
+  },
+  instagram: {
+    label: "Instagram",
+    connector: "instagram",
+    fields: {
+      account: ["account_name","name","biography","media_count","follows_and_unfollows","media_url","reach","likes","comments","shares","saves","total_interactions","replies","profile_views","date"]
+    }
+  }
+};
+
+let state = {
+  platform: "meta",
+  account: "__all__",
+  dateFrom: "",
+  dateTo: "",
+  accountsByPlatform: { meta:[], google:[], instagram:[] }
+};
+
+function setDefaultDates(){
+  const today = new Date();
+  const past = new Date(); past.setDate(today.getDate()-7);
+  document.getElementById("dateFrom").value = past.toISOString().slice(0,10);
+  document.getElementById("dateTo").value = today.toISOString().slice(0,10);
+  state.dateFrom = past.toISOString().slice(0,10);
+  state.dateTo = today.toISOString().slice(0,10);
+}
+
+const fmtMoney = v => "R$ " + (Number(v||0)).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtNum = v => Number(v||0).toLocaleString("pt-BR",{maximumFractionDigits:0});
+const fmtPct = v => (Number(v||0)*100).toFixed(2) + "%";
+
+function getActionValue(actions, type){
+  if(!Array.isArray(actions)) return 0;
+  const item = actions.find(a => a.action_type===type);
+  return item ? Number(item.value)||0 : 0;
+}
+function getMessageCount(actions){
+  if(!Array.isArray(actions)) return 0;
+  const types = ["onsite_conversion.messaging_first_reply","onsite_conversion.messaging_conversation_started_7d","onsite_conversion.total_messaging_connection"];
+  let total = 0;
+  for(const t of types){ const v = getActionValue(actions,t); if(v>total) total=v; }
+  return total;
+}
+function getLeadCount(actions){
+  if(!Array.isArray(actions)) return 0;
+  const types = ["lead","onsite_conversion.lead_grouped","leadgen.other","offsite_conversion.fb_pixel_lead"];
+  let total = 0;
+  for(const t of types){ total += getActionValue(actions,t); }
+  return total;
+}
+
+async function windsorFetch(connector, fields, fromDate, toDate){
+  const params = new URLSearchParams({ fields: fields.join(",") });
+  if(fromDate && toDate){
+    params.set("date_from", fromDate);
+    params.set("date_to", toDate);
+  }
+  const url = `${BASE}/${connector}?${params}`;
+  const res = await fetch(url, { credentials: "same-origin" });
+  if(res.status === 401){
+    window.location.href = "/login";
+    throw new Error("Sessão expirada");
+  }
+  if(!res.ok) throw new Error("Erro API: " + res.status);
+  const json = await res.json();
+  if(json.error) throw new Error(json.error);
+  return json.data || [];
+}
+
+function showBanner(html, isError){
+  const b = document.getElementById("banner");
+  b.innerHTML = html ? `<div class="${isError?"err":"banner"}">${html}</div>` : "";
+}
+
+function showLoader(){
+  document.getElementById("content").innerHTML = `<div class="loader"><div class="spinner"></div><span style="margin-left:10px">Carregando dados...</span></div>`;
+}
+
+function aggregateMetaRows(rows){
+  const out = { spend:0, impressions:0, clicks:0, reach:0, messages:0, conversations_started:0, leads:0, link_clicks:0, post_engagement:0, video_views:0 };
+  for(const r of rows){
+    out.spend += Number(r.spend)||0;
+    out.impressions += Number(r.impressions)||0;
+    out.clicks += Number(r.clicks)||0;
+    out.reach += Number(r.reach)||0;
+    out.messages += getMessageCount(r.actions);
+    out.conversations_started += getActionValue(r.actions,"onsite_conversion.messaging_conversation_started_7d");
+    out.leads += getLeadCount(r.actions);
+    out.link_clicks += getActionValue(r.actions,"link_click");
+    out.post_engagement += getActionValue(r.actions,"post_engagement");
+    out.video_views += getActionValue(r.actions,"video_view");
+  }
+  out.ctr = out.impressions ? (out.clicks/out.impressions) : 0;
+  out.cpc = out.clicks ? (out.spend/out.clicks) : 0;
+  out.cpm = out.impressions ? (out.spend/out.impressions*1000) : 0;
+  out.results = out.messages>0 ? out.messages : (out.leads>0 ? out.leads : out.link_clicks);
+  out.cpr = out.results ? (out.spend/out.results) : 0;
+  out.cpl_conversation = out.conversations_started ? (out.spend/out.conversations_started) : 0;
+  return out;
+}
+
+function aggregateGoogleRows(rows){
+  const out = { spend:0, impressions:0, clicks:0, conversions:0 };
+  for(const r of rows){
+    out.spend += Number(r.cost)||0;
+    out.impressions += Number(r.impressions)||0;
+    out.clicks += Number(r.clicks)||0;
+    out.conversions += Number(r.conversions)||0;
+  }
+  out.ctr = out.impressions ? (out.clicks/out.impressions) : 0;
+  out.cpc = out.clicks ? (out.spend/out.clicks) : 0;
+  out.cpm = out.impressions ? (out.spend/out.impressions*1000) : 0;
+  out.cpa = out.conversions ? (out.spend/out.conversions) : 0;
+  return out;
+}
+
+function aggregateInstagramRows(rows){
+  const out = { reach:0, likes:0, comments:0, shares:0, saves:0, total_interactions:0, replies:0, posts:0, new_followers:0, profile_views:0, media_count:0, name:"", biography:"" };
+  for(const r of rows){
+    out.reach += Number(r.reach)||0;
+    out.likes += Number(r.likes)||0;
+    out.comments += Number(r.comments)||0;
+    out.shares += Number(r.shares)||0;
+    out.saves += Number(r.saves)||0;
+    out.total_interactions += Number(r.total_interactions)||0;
+    out.replies += Number(r.replies)||0;
+    out.new_followers += Number(r.follows_and_unfollows)||0;
+    out.profile_views += Number(r.profile_views)||0;
+    if(!out.name && r.name) out.name = r.name;
+    if(!out.biography && r.biography) out.biography = r.biography;
+    if(Number(r.media_count)>out.media_count) out.media_count = Number(r.media_count);
+    out.posts += 1;
+  }
+  out.engagement = out.reach ? ((out.likes+out.comments)/out.reach) : 0;
+  return out;
+}
+
+function groupByAccount(rows, keyField){
+  const map = new Map();
+  for(const r of rows){
+    const k = r[keyField] || "—";
+    if(!map.has(k)) map.set(k, []);
+    map.get(k).push(r);
+  }
+  return map;
+}
+
+function metricCard(title, value, sub, icon){
+  return `<div class="card">
+    <div class="card-title">${title}</div>
+    <div class="card-value">${value}</div>
+    ${sub?`<div class="card-sub">${sub}</div>`:""}
+    <div class="card-icon">${icon||""}</div>
+  </div>`;
+}
+
+function renderMetaConsolidated(rows){
+  const agg = aggregateMetaRows(rows);
+  const byAccount = groupByAccount(rows, "account_name");
+  const accounts = [...byAccount.entries()].map(([name,rs])=>({name, ...aggregateMetaRows(rs)})).sort((a,b)=>b.spend-a.spend);
+  const cards = `
+    <div class="grid grid-5">
+      ${metricCard("Investimento Total", fmtMoney(agg.spend), `${accounts.length} conta(s) ativas`, "💰")}
+      ${metricCard("Conversas Iniciadas", fmtNum(agg.conversations_started), "Message conv. started", "💬")}
+      ${metricCard("CPL (Conversa)", fmtMoney(agg.cpl_conversation), "Custo por conversa iniciada", "📉")}
+      ${metricCard("Impressões", fmtNum(agg.impressions), `Alcance: ${fmtNum(agg.reach)}`, "👁")}
+      ${metricCard("Cliques", fmtNum(agg.clicks), `CTR ${fmtPct(agg.ctr)} · CPC ${fmtMoney(agg.cpc)}`, "🖱")}
+    </div>`;
+  const tableRows = accounts.map(a=>`
+    <tr onclick="document.getElementById('accountSelect').value='${a.name.replace(/'/g,"&#39;")}';loadData()">
+      <td><b>${a.name}</b></td>
+      <td>${fmtMoney(a.spend)}</td>
+      <td>${fmtNum(a.conversations_started)}</td>
+      <td>${fmtMoney(a.cpl_conversation)}</td>
+      <td>${fmtNum(a.results)}</td>
+      <td>${fmtMoney(a.cpr)}</td>
+      <td>${fmtNum(a.impressions)}</td>
+      <td>${fmtNum(a.clicks)}</td>
+      <td>${fmtPct(a.ctr)}</td>
+      <td>${fmtMoney(a.cpc)}</td>
+    </tr>`).join("");
+  return cards + `
+    <div class="section">
+      <div class="section-title">📋 Consolidado por Conta <span class="pill">${accounts.length} contas</span></div>
+      <div class="card" style="padding:0;overflow:auto">
+        <table>
+          <thead>
+            <tr><th>Conta</th><th>Investimento</th><th>Conv. Iniciadas</th><th>CPL</th><th>Resultados</th><th>CPR</th><th>Impressões</th><th>Cliques</th><th>CTR</th><th>CPC</th></tr>
+          </thead>
+          <tbody>${tableRows||`<tr><td colspan="10" class="empty">Sem dados</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderGoogleConsolidated(rows){
+  const agg = aggregateGoogleRows(rows);
+  const byAccount = groupByAccount(rows, "account_name");
+  const accounts = [...byAccount.entries()].map(([name,rs])=>({name, ...aggregateGoogleRows(rs)})).sort((a,b)=>b.spend-a.spend);
+  const cards = `
+    <div class="grid grid-5">
+      ${metricCard("Investimento Total", fmtMoney(agg.spend), `${accounts.length} conta(s)`, "💰")}
+      ${metricCard("Conversões", fmtNum(agg.conversions), "", "🎯")}
+      ${metricCard("Custo / Conversão", fmtMoney(agg.cpa), "CPA consolidado", "📉")}
+      ${metricCard("Impressões", fmtNum(agg.impressions), "", "👁")}
+      ${metricCard("Cliques", fmtNum(agg.clicks), `CTR ${fmtPct(agg.ctr)} · CPC ${fmtMoney(agg.cpc)}`, "🖱")}
+    </div>`;
+  const tableRows = accounts.map(a=>`
+    <tr onclick="document.getElementById('accountSelect').value='${a.name.replace(/'/g,"&#39;")}';loadData()">
+      <td><b>${a.name}</b></td>
+      <td>${fmtMoney(a.spend)}</td>
+      <td>${fmtNum(a.conversions)}</td>
+      <td>${fmtMoney(a.cpa)}</td>
+      <td>${fmtNum(a.impressions)}</td>
+      <td>${fmtNum(a.clicks)}</td>
+      <td>${fmtPct(a.ctr)}</td>
+      <td>${fmtMoney(a.cpc)}</td>
+    </tr>`).join("");
+  return cards + `
+    <div class="section">
+      <div class="section-title">📋 Consolidado por Conta <span class="pill">${accounts.length} contas</span></div>
+      <div class="card" style="padding:0;overflow:auto">
+        <table>
+          <thead>
+            <tr><th>Conta</th><th>Investimento</th><th>Conversões</th><th>CPA</th><th>Impressões</th><th>Cliques</th><th>CTR</th><th>CPC</th></tr>
+          </thead>
+          <tbody>${tableRows||`<tr><td colspan="8" class="empty">Sem dados</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderInstagramConsolidated(rows){
+  const agg = aggregateInstagramRows(rows);
+  const byAccount = groupByAccount(rows, "account_name");
+  const accounts = [...byAccount.entries()].map(([name,rs])=>({name, ...aggregateInstagramRows(rs)})).sort((a,b)=>b.reach-a.reach);
+  const cards = `
+    <div class="grid grid-5">
+      ${metricCard("Alcance Total", fmtNum(agg.reach), `${accounts.length} conta(s)`, "👁")}
+      ${metricCard("Novos Seguidores", fmtNum(agg.new_followers), "Saldo no período", "👤")}
+      ${metricCard("Interações", fmtNum(agg.total_interactions), "Likes+Com+Shares+Saves", "💬")}
+      ${metricCard("Curtidas", fmtNum(agg.likes), "", "❤️")}
+      ${metricCard("Engajamento", fmtPct(agg.engagement), "(Likes+Coments)/Alcance", "📊")}
+    </div>`;
+  const tableRows = accounts.map(a=>`
+    <tr onclick="document.getElementById('accountSelect').value='${a.name.replace(/'/g,"&#39;")}';loadData()">
+      <td><b>@${a.name}</b></td>
+      <td>${fmtNum(a.reach)}</td>
+      <td style="color:${a.new_followers>=0?'#22c55e':'#ef4444'}">${a.new_followers>=0?'+':''}${fmtNum(a.new_followers)}</td>
+      <td>${fmtNum(a.likes)}</td>
+      <td>${fmtNum(a.comments)}</td>
+      <td>${fmtNum(a.shares)}</td>
+      <td>${fmtNum(a.saves)}</td>
+      <td>${fmtNum(a.total_interactions)}</td>
+      <td>${fmtPct(a.engagement)}</td>
+    </tr>`).join("");
+  return cards + `
+    <div class="section">
+      <div class="section-title">📋 Consolidado por Conta <span class="pill">${accounts.length} contas</span></div>
+      <div class="card" style="padding:0;overflow:auto">
+        <table>
+          <thead>
+            <tr><th>Conta</th><th>Alcance</th><th>Novos Seg.</th><th>Curtidas</th><th>Comentários</th><th>Compart.</th><th>Salvos</th><th>Interações</th><th>Engajamento</th></tr>
+          </thead>
+          <tbody>${tableRows||`<tr><td colspan="9" class="empty">Sem dados</td></tr>`}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderMetaDetail(rows, accountName){
+  const accountRows = rows.filter(r => r.account_name === accountName);
+  if(!accountRows.length) return `<div class="empty">Nenhum dado para "${accountName}" no período.</div>`;
+  const agg = aggregateMetaRows(accountRows);
+  const adMap = new Map();
+  for(const r of accountRows){
+    const key = r.ad_id || r.ad_name || "—";
+    if(!adMap.has(key)) adMap.set(key, { ad_id:r.ad_id, ad_name:r.ad_name, campaign:r.campaign, thumbnail_url:r.thumbnail_url, instagram_permalink_url:r.instagram_permalink_url, rows:[] });
+    const obj = adMap.get(key);
+    if(!obj.thumbnail_url && r.thumbnail_url) obj.thumbnail_url = r.thumbnail_url;
+    if(!obj.instagram_permalink_url && r.instagram_permalink_url) obj.instagram_permalink_url = r.instagram_permalink_url;
+    obj.rows.push(r);
+  }
+  const ads = [...adMap.values()].map(a => ({ ...a, ...aggregateMetaRows(a.rows) }))
+    .sort((a,b)=> b.results - a.results).slice(0,5);
+  const adsHTML = ads.length ? ads.map((a,i)=>{
+    const thumb = a.thumbnail_url
+      ? `<a href="${a.instagram_permalink_url||a.thumbnail_url}" target="_blank" class="ad-thumb"><img src="${a.thumbnail_url}" alt="${a.ad_name||""}" loading="lazy"/><span class="ad-thumb-play">▶</span></a>`
+      : `<div class="ad-thumb ad-thumb-empty">📷 sem prévia</div>`;
+    return `
+    <div class="ad-card">
+      <div class="ad-card-rank">
+        <span>#${i+1} ${a.ad_name||"Anúncio"}</span>
+        <span>${fmtNum(a.results)} resultados</span>
+      </div>
+      ${thumb}
+      <div class="ad-card-body">
+        <div class="ad-card-camp">${a.campaign||""}</div>
+        <div class="ad-card-row"><span>Investimento</span><b>${fmtMoney(a.spend)}</b></div>
+        <div class="ad-card-row" style="color:var(--gold-1)"><span>Conversas Iniciadas</span><b style="color:var(--gold-1)">${fmtNum(a.conversations_started)}</b></div>
+        <div class="ad-card-row" style="color:var(--gold-1)"><span>CPL (Conversa)</span><b style="color:var(--gold-1)">${fmtMoney(a.cpl_conversation)}</b></div>
+        <div class="ad-card-row"><span>CPR</span><b>${fmtMoney(a.cpr)}</b></div>
+        <div class="ad-card-row"><span>Impressões</span><b>${fmtNum(a.impressions)}</b></div>
+        <div class="ad-card-row"><span>Alcance</span><b>${fmtNum(a.reach)}</b></div>
+        <div class="ad-card-row"><span>Cliques</span><b>${fmtNum(a.clicks)}</b></div>
+        <div class="ad-card-row"><span>CTR</span><b>${fmtPct(a.ctr)}</b></div>
+        <div class="ad-card-row"><span>CPC</span><b>${fmtMoney(a.cpc)}</b></div>
+        <div class="ad-card-row"><span>CPM</span><b>${fmtMoney(a.cpm)}</b></div>
+        ${a.instagram_permalink_url?`<a href="${a.instagram_permalink_url}" target="_blank" class="ad-link">🔗 Ver anúncio no Instagram</a>`:""}
+      </div>
+    </div>`;}).join("") : `<div class="empty">Sem anúncios neste período.</div>`;
+  const funnel = `
+    <div class="card">
+      <div class="section-title" style="margin-bottom:0">🔻 Funil de Conversão</div>
+      <div class="funnel">
+        <div class="funnel-step" style="width:90%">
+          <div class="step-label">Impressões</div>
+          <div class="step-value">${fmtNum(agg.impressions)}</div>
+          <div class="step-cost">${fmtMoney(agg.cpm)} CPM</div>
+        </div>
+        <div class="funnel-conv">↓ ${fmtPct(agg.ctr)} de cliques</div>
+        <div class="funnel-step" style="width:72%">
+          <div class="step-label">Cliques</div>
+          <div class="step-value">${fmtNum(agg.clicks)}</div>
+          <div class="step-cost">${fmtMoney(agg.cpc)} CPC</div>
+        </div>
+        <div class="funnel-conv">↓ ${agg.clicks?(agg.conversations_started/agg.clicks*100).toFixed(1):"0"}% conversão</div>
+        <div class="funnel-step" style="width:54%">
+          <div class="step-label">Conversas Iniciadas</div>
+          <div class="step-value">${fmtNum(agg.conversations_started)}</div>
+          <div class="step-cost">${fmtMoney(agg.cpl_conversation)} CPL</div>
+        </div>
+        <div class="funnel-conv">↓ ${agg.conversations_started?(agg.results/agg.conversations_started*100).toFixed(1):"0"}% concluídas</div>
+        <div class="funnel-step" style="width:38%">
+          <div class="step-label">Resultados</div>
+          <div class="step-value">${fmtNum(agg.results)}</div>
+          <div class="step-cost">${fmtMoney(agg.cpr)} CPR</div>
+        </div>
+      </div>
+    </div>`;
+  const demoCanvas = `
+    <div class="card">
+      <div class="section-title" style="margin-bottom:14px">👥 Demografia (Idade × Gênero)</div>
+      <div class="chart-wrap"><canvas id="demoChart"></canvas></div>
+    </div>`;
+  const overview = `
+    <div class="grid grid-5">
+      ${metricCard("Investimento", fmtMoney(agg.spend), accountName, "💰")}
+      ${metricCard("Conversas Iniciadas", fmtNum(agg.conversations_started), "Message conv. started", "💬")}
+      ${metricCard("CPL (Conversa)", fmtMoney(agg.cpl_conversation), "Custo / conversa iniciada", "📉")}
+      ${metricCard("Resultados", fmtNum(agg.results), agg.messages>0?"Mensagens/Conversas":(agg.leads>0?"Leads":"Cliques link"), "🎯")}
+      ${metricCard("CPR", fmtMoney(agg.cpr), "Custo por resultado", "📉")}
+    </div>
+    <div class="grid grid-5" style="margin-top:16px">
+      ${metricCard("Impressões", fmtNum(agg.impressions), `Alcance: ${fmtNum(agg.reach)}`, "👁")}
+      ${metricCard("Cliques", fmtNum(agg.clicks), `CTR ${fmtPct(agg.ctr)}`, "🖱")}
+      ${metricCard("CPM Médio", fmtMoney(agg.cpm), "", "📺")}
+      ${metricCard("CPC Médio", fmtMoney(agg.cpc), "", "💵")}
+      ${metricCard("Visualizações Vídeo", fmtNum(agg.video_views), `${fmtNum(agg.post_engagement)} engajam.`, "▶️")}
+    </div>
+  `;
+  return `
+    ${overview}
+    <div class="section">
+      <div class="section-title">🏆 Top 5 Anúncios <span class="pill">por resultados</span></div>
+      <div class="ad-grid">${adsHTML}</div>
+    </div>
+    <div class="section grid grid-2">
+      ${funnel}
+      ${demoCanvas}
+    </div>
+  `;
+}
+
+function renderGoogleDetail(rows, accountName){
+  const accountRows = rows.filter(r => r.account_name === accountName);
+  if(!accountRows.length) return `<div class="empty">Nenhum dado para "${accountName}" no período.</div>`;
+  const agg = aggregateGoogleRows(accountRows);
+  const map = new Map();
+  for(const r of accountRows){
+    const k = r.campaign || "—";
+    if(!map.has(k)) map.set(k,[]);
+    map.get(k).push(r);
+  }
+  const camps = [...map.entries()].map(([name,rs])=>({name, ...aggregateGoogleRows(rs)}))
+    .sort((a,b)=>b.conversions-a.conversions||b.spend-a.spend).slice(0,5);
+  const campHTML = camps.length ? camps.map((c,i)=>`
+    <div class="ad-card">
+      <div class="ad-card-rank">
+        <span>#${i+1}</span>
+        <span>${fmtNum(c.conversions)} conversões</span>
+      </div>
+      <div class="ad-card-body">
+        <div class="ad-card-name">${c.name}</div>
+        <div class="ad-card-row"><span>Investimento</span><b>${fmtMoney(c.spend)}</b></div>
+        <div class="ad-card-row"><span>CPA</span><b>${fmtMoney(c.cpa)}</b></div>
+        <div class="ad-card-row"><span>Impressões</span><b>${fmtNum(c.impressions)}</b></div>
+        <div class="ad-card-row"><span>Cliques</span><b>${fmtNum(c.clicks)}</b></div>
+        <div class="ad-card-row"><span>CTR</span><b>${fmtPct(c.ctr)}</b></div>
+        <div class="ad-card-row"><span>CPC</span><b>${fmtMoney(c.cpc)}</b></div>
+      </div>
+    </div>`).join("") : `<div class="empty">Sem campanhas.</div>`;
+  const funnel = `
+    <div class="card">
+      <div class="section-title" style="margin-bottom:0">🔻 Funil de Conversão</div>
+      <div class="funnel">
+        <div class="funnel-step" style="width:80%">
+          <div class="step-label">Impressões</div>
+          <div class="step-value">${fmtNum(agg.impressions)}</div>
+          <div class="step-cost">${fmtMoney(agg.cpm)} CPM</div>
+        </div>
+        <div class="funnel-conv">↓ ${fmtPct(agg.ctr)} CTR</div>
+        <div class="funnel-step" style="width:60%">
+          <div class="step-label">Cliques</div>
+          <div class="step-value">${fmtNum(agg.clicks)}</div>
+          <div class="step-cost">${fmtMoney(agg.cpc)} CPC</div>
+        </div>
+        <div class="funnel-conv">↓ ${agg.clicks?(agg.conversions/agg.clicks*100).toFixed(1):"0"}% conversão</div>
+        <div class="funnel-step" style="width:40%">
+          <div class="step-label">Conversões</div>
+          <div class="step-value">${fmtNum(agg.conversions)}</div>
+          <div class="step-cost">${fmtMoney(agg.cpa)} CPA</div>
+        </div>
+      </div>
+    </div>`;
+  const overview = `
+    <div class="grid grid-5">
+      ${metricCard("Investimento", fmtMoney(agg.spend), accountName, "💰")}
+      ${metricCard("Conversões", fmtNum(agg.conversions), "", "🎯")}
+      ${metricCard("CPA", fmtMoney(agg.cpa), "Custo / Conversão", "📉")}
+      ${metricCard("Impressões", fmtNum(agg.impressions), "", "👁")}
+      ${metricCard("Cliques", fmtNum(agg.clicks), `CTR ${fmtPct(agg.ctr)}`, "🖱")}
+    </div>
+    <div class="grid grid-2" style="margin-top:16px">
+      ${metricCard("CPM Médio", fmtMoney(agg.cpm), "", "📺")}
+      ${metricCard("CPC Médio", fmtMoney(agg.cpc), "", "💵")}
+    </div>`;
+  return `
+    ${overview}
+    <div class="section">
+      <div class="section-title">🏆 Top 5 Campanhas <span class="pill">por conversões</span></div>
+      <div class="ad-grid">${campHTML}</div>
+    </div>
+    <div class="section">${funnel}</div>
+  `;
+}
+
+function renderInstagramDetail(rows, accountName){
+  const accountRows = rows.filter(r => r.account_name === accountName);
+  if(!accountRows.length) return `<div class="empty">Nenhum dado para "${accountName}" no período.</div>`;
+  const agg = aggregateInstagramRows(accountRows);
+  const profile = `
+    <div class="card ig-profile">
+      <div class="ig-avatar">
+        <div class="ig-avatar-ring">
+          <div class="ig-avatar-inner">${(accountName||"?").charAt(0).toUpperCase()}</div>
+        </div>
+      </div>
+      <div class="ig-info">
+        <div class="ig-name">${agg.name||accountName}</div>
+        <div class="ig-handle">@${accountName}</div>
+        ${agg.biography?`<div class="ig-bio">${agg.biography.replace(/\n/g,"<br>")}</div>`:""}
+      </div>
+      <div class="ig-stats">
+        <div><b>${fmtNum(agg.media_count)}</b><span>publicações</span></div>
+        <div><b>${fmtNum(agg.reach)}</b><span>alcance</span></div>
+        <div style="color:${agg.new_followers>=0?'#22c55e':'#ef4444'}"><b>${agg.new_followers>=0?'+':''}${fmtNum(agg.new_followers)}</b><span>novos seg.</span></div>
+      </div>
+    </div>`;
+  const overview = `
+    <div class="grid grid-5">
+      ${metricCard("Novos Seguidores", (agg.new_followers>=0?'+':'')+fmtNum(agg.new_followers), "Saldo no período", "👤")}
+      ${metricCard("Alcance", fmtNum(agg.reach), `Contas alcançadas`, "👁")}
+      ${metricCard("Publicações", fmtNum(agg.media_count), "Total na conta", "🗂")}
+      ${metricCard("Curtidas", fmtNum(agg.likes), "", "❤️")}
+      ${metricCard("Engajamento", fmtPct(agg.engagement), "(Likes+Coments)/Alcance", "📊")}
+    </div>
+    <div class="grid grid-5" style="margin-top:16px">
+      ${metricCard("Comentários", fmtNum(agg.comments), `${fmtNum(agg.replies)} respostas`, "💭")}
+      ${metricCard("Compartilhamentos", fmtNum(agg.shares), "", "📤")}
+      ${metricCard("Salvos", fmtNum(agg.saves), "", "🔖")}
+      ${metricCard("Interações", fmtNum(agg.total_interactions), "Soma total", "💬")}
+      ${metricCard("Visitas Perfil", fmtNum(agg.profile_views), "", "👀")}
+    </div>
+  `;
+  const posts = accountRows.filter(r => r.media_url).reduce((acc,r)=>{
+    if(!acc.find(p=>p.media_url===r.media_url)) acc.push(r);
+    return acc;
+  },[]).slice(0,12);
+  const postsHTML = posts.length ? `
+    <div class="section">
+      <div class="section-title">🖼️ Publicações <span class="pill">${posts.length}</span></div>
+      <div class="ig-grid">
+        ${posts.map(p=>`<a class="ig-post" href="${p.media_url}" target="_blank"><img src="${p.media_url}" loading="lazy" alt=""/><div class="ig-post-meta"><span>❤️ ${fmtNum(p.likes)}</span><span>💬 ${fmtNum(p.comments)}</span></div></a>`).join("")}
+      </div>
+    </div>` : "";
+  return `
+    ${profile}
+    ${overview}
+    ${postsHTML}
+    <div class="section card">
+      <div class="section-title" style="margin-bottom:14px">📈 Evolução Diária</div>
+      <div class="chart-wrap"><canvas id="igChart"></canvas></div>
+    </div>
+  `;
+}
+
+function drawDemoChart(rows){
+  const canvas = document.getElementById("demoChart");
+  if(!canvas) return;
+  const ages = ["13-17","18-24","25-34","35-44","45-54","55-64","65+"];
+  const male = ages.map(()=>0), female = ages.map(()=>0);
+  for(const r of rows){
+    const idx = ages.indexOf(r.age);
+    if(idx<0) continue;
+    const v = Number(r.impressions)||0;
+    if(r.gender==="male") male[idx]+=v;
+    else if(r.gender==="female") female[idx]+=v;
+  }
+  new Chart(canvas, {
+    type:"bar",
+    data:{
+      labels:ages,
+      datasets:[
+        { label:"Feminino", data:female, backgroundColor:"#e1306c" },
+        { label:"Masculino", data:male, backgroundColor:"#1877f2" }
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:"#e8e8e8"}}},
+      scales:{
+        x:{ticks:{color:"#8a8f98"},grid:{color:"#23272e"}},
+        y:{ticks:{color:"#8a8f98"},grid:{color:"#23272e"}}
+      }
+    }
+  });
+}
+
+function drawIgChart(rows){
+  const canvas = document.getElementById("igChart");
+  if(!canvas) return;
+  const sorted = [...rows].sort((a,b)=> (a.date||"").localeCompare(b.date||""));
+  const labels = sorted.map(r=>r.date);
+  const reach = sorted.map(r=>Number(r.reach)||0);
+  const inter = sorted.map(r=>Number(r.total_interactions)||0);
+  new Chart(canvas, {
+    type:"line",
+    data:{
+      labels,
+      datasets:[
+        { label:"Alcance", data:reach, borderColor:"#caa56a", backgroundColor:"rgba(202,165,106,.2)", tension:.3, fill:true },
+        { label:"Interações", data:inter, borderColor:"#e1306c", backgroundColor:"rgba(225,48,108,.2)", tension:.3, fill:true }
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:"#e8e8e8"}}},
+      scales:{
+        x:{ticks:{color:"#8a8f98"},grid:{color:"#23272e"}},
+        y:{ticks:{color:"#8a8f98"},grid:{color:"#23272e"}}
+      }
+    }
+  });
+}
+
+function updateAccountDropdown(rows){
+  const sel = document.getElementById("accountSelect");
+  const accounts = [...new Set(rows.map(r=>r.account_name).filter(Boolean))].sort();
+  state.accountsByPlatform[state.platform] = accounts;
+  const current = sel.value;
+  sel.innerHTML = `<option value="__all__">📊 Todas as contas (consolidado)</option>` +
+    accounts.map(a=>`<option value="${a.replace(/"/g,'&quot;')}">${a}</option>`).join("");
+  if(current==="__all__" || accounts.includes(current)) sel.value = current;
+}
+
+async function loadData(){
+  showLoader();
+  const platform = state.platform;
+  const cfg = PLATFORMS[platform];
+  state.dateFrom = document.getElementById("dateFrom").value;
+  state.dateTo = document.getElementById("dateTo").value;
+  state.account = document.getElementById("accountSelect").value;
+  try{
+    const isMeta = platform==="meta";
+    const fields = isMeta ? cfg.fields.demo : cfg.fields.detail || cfg.fields.account;
+    const rows = await windsorFetch(cfg.connector, fields, state.dateFrom, state.dateTo);
+    updateAccountDropdown(rows);
+    showBanner("");
+    let html = "";
+    if(state.account === "__all__"){
+      if(platform==="meta") html = renderMetaConsolidated(rows);
+      else if(platform==="google") html = renderGoogleConsolidated(rows);
+      else html = renderInstagramConsolidated(rows);
+    } else {
+      if(platform==="meta") html = renderMetaDetail(rows, state.account);
+      else if(platform==="google") html = renderGoogleDetail(rows, state.account);
+      else html = renderInstagramDetail(rows, state.account);
+    }
+    document.getElementById("content").innerHTML = html;
+    if(platform==="meta" && state.account!=="__all__"){
+      drawDemoChart(rows.filter(r=>r.account_name===state.account));
+    }
+    if(platform==="instagram" && state.account!=="__all__"){
+      drawIgChart(rows.filter(r=>r.account_name===state.account));
+    }
+    document.getElementById("lastUpdate").textContent = "Atualizado " + new Date().toLocaleTimeString("pt-BR");
+  } catch(e){
+    showBanner("Erro ao carregar: " + e.message, true);
+    document.getElementById("content").innerHTML = "";
+  }
+}
+
+async function loadUser(){
+  try {
+    const r = await fetch("/api/me", { credentials: "same-origin" });
+    if(r.ok){
+      const u = await r.json();
+      document.getElementById("userName").textContent = u.name || u.email;
+    }
+  } catch {}
+}
+
+document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+  await fetch("/api/logout", { method: "POST", credentials: "same-origin" });
+  window.location.href = "/login";
+});
+
+document.querySelectorAll(".tab").forEach(t=>{
+  t.addEventListener("click", ()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    state.platform = t.dataset.platform;
+    document.getElementById("accountSelect").value = "__all__";
+    loadData();
+  });
+});
+document.getElementById("loadBtn").addEventListener("click", loadData);
+document.getElementById("accountSelect").addEventListener("change", loadData);
+document.getElementById("dateFrom").addEventListener("change", loadData);
+document.getElementById("dateTo").addEventListener("change", loadData);
+
+setDefaultDates();
+loadUser();
+loadData();
+</script>
+</body>
+</html>

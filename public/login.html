@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mesus Media — Login</title>
+<style>
+  :root{
+    --bg:#0a0a0a; --panel:#111418; --line:#23272e; --text:#e8e8e8; --muted:#8a8f98;
+    --gold-1:#f1d9a0; --gold-2:#caa56a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(ellipse at top,#1a1410 0%,#0a0a0a 60%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .login-box{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:42px 36px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.5)}
+  .logo-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:30px}
+  .logo{width:64px;height:64px;margin-bottom:14px}
+  .brand-name{font-size:22px;font-weight:700;letter-spacing:1.5px;background:linear-gradient(135deg,var(--gold-1),var(--gold-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .brand-tag{font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:4px}
+  .form-group{margin-bottom:16px}
+  label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+  .input{width:100%;background:#0a0a0a;border:1px solid var(--line);color:var(--text);padding:13px 14px;border-radius:10px;font-size:14px;outline:none}
+  .input:focus{border-color:var(--gold-2)}
+  .btn{width:100%;background:linear-gradient(135deg,var(--gold-1),var(--gold-2));color:#0a0a0a;border:none;padding:14px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;margin-top:10px;letter-spacing:.5px}
+  .btn:hover{filter:brightness(1.05)}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+  .err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#ff8c8c;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none}
+  .err.show{display:block}
+  .footer{text-align:center;margin-top:24px;color:var(--muted);font-size:11px;letter-spacing:1px}
+</style>
+</head>
+<body>
+<form class="login-box" id="form">
+  <div class="logo-wrap">
+    <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#f1d9a0"/>
+          <stop offset="50%" stop-color="#caa56a"/>
+          <stop offset="100%" stop-color="#8a6c3a"/>
+        </linearGradient>
+      </defs>
+      <polygon points="20,80 35,30 50,80 42,80 35,55 28,80" fill="url(#g1)"/>
+      <polygon points="50,80 65,30 80,80 72,80 65,55 58,80" fill="url(#g1)"/>
+      <circle cx="86" cy="76" r="4" fill="url(#g1)"/>
+    </svg>
+    <div class="brand-name">MESUS MEDIA</div>
+    <div class="brand-tag">Painel de Performance</div>
+  </div>
+
+  <div class="err" id="err"></div>
+
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input class="input" type="email" id="email" name="email" autocomplete="username" required />
+  </div>
+
+  <div class="form-group">
+    <label for="password">Senha</label>
+    <input class="input" type="password" id="password" name="password" autocomplete="current-password" required />
+  </div>
+
+  <button class="btn" type="submit" id="btn">Entrar</button>
+
+  <div class="footer">Acesso restrito ao time</div>
+</form>
+
+<script>
+const form = document.getElementById("form");
+const errEl = document.getElementById("err");
+const btn = document.getElementById("btn");
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  errEl.classList.remove("show");
+  btn.disabled = true;
+  btn.textContent = "Validando...";
+  try {
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        email: document.getElementById("email").value.trim(),
+        password: document.getElementById("password").value
+      })
+    });
+    if (res.ok) {
+      window.location.href = "/";
+      return;
+    }
+    const data = await res.json().catch(() => ({}));
+    errEl.textContent = data.error === "invalid_credentials"
+      ? "Email ou senha incorretos."
+      : "Erro ao entrar. Tente novamente.";
+    errEl.classList.add("show");
+  } catch {
+    errEl.textContent = "Falha de rede. Tente novamente.";
+    errEl.classList.add("show");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Entrar";
+  }
+});
+</script>
+</body>
+</html>
