@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/**/*.js": {
+      "handler": "api/**/*.js"
+    }
+  }
+}
