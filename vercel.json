@@ -1,17 +1,25 @@
 {
-  "build": {
-    "env": {
-      "NODE_VERSION": "18"
-    }
-  },
-  "routes": [
+  "version": 2,
+  "builds": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "use": "@vercel/node",
+      "src": "api/login.js"
     },
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "use": "@vercel/node",
+      "src": "api/logout.js"
+    },
+    {
+      "use": "@vercel/node",
+      "src": "api/me.js"
+    },
+    {
+      "use": "@vercel/node",
+      "src": "api/proxy/connector.js"
+    },
+    {
+      "use": "static",
+      "src": "public/**"
     }
   ]
 }
