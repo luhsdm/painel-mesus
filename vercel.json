@@ -2,23 +2,23 @@
   "version": 2,
   "builds": [
     {
-      "use": "@vercel/node",
+      "use": "@vercel/node@3",
       "src": "api/login.js"
     },
     {
-      "use": "@vercel/node",
+      "use": "@vercel/node@3",
       "src": "api/logout.js"
     },
     {
-      "use": "@vercel/node",
+      "use": "@vercel/node@3",
       "src": "api/me.js"
     },
     {
-      "use": "@vercel/node",
+      "use": "@vercel/node@3",
       "src": "api/proxy/connector.js"
     },
     {
-      "use": "static",
+      "use": "@vercel/static@3",
       "src": "public/**"
     }
   ]
