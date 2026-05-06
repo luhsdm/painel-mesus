@@ -11,7 +11,7 @@
     { "src": "/api/login",            "dest": "/api/login.js" },
     { "src": "/api/logout",           "dest": "/api/logout.js" },
     { "src": "/api/me",               "dest": "/api/me.js" },
-    { "src": "/api/proxy/connector",  "dest": "/api/proxy/connector.js" },
+    { "src": "/api/proxy/([^/]+)(.*)", "dest": "/api/proxy/connector.js?connector=$1" },
     { "src": "/login",                "dest": "/public/login.html" },
     { "src": "/",                     "dest": "/public/index.html" }
   ]
