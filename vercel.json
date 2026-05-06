@@ -1,7 +1,25 @@
 {
-  "functions": {
-    "api/**/*.js": {
-      "handler": "api/**/*.js"
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/login.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/logout.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/me.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/proxy/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/**",
+      "use": "static"
     }
-  }
+  ]
 }
