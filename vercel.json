@@ -1,32 +1,7 @@
 {
-  "builds": [
-    {
-      "src": "api/login.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/logout.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/me.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/proxy/**",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "public/**",
-      "use": "static"
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
     }
-  ],
-  "routes": [
-    { "src": "/api/login", "dest": "/api/login.js" },
-    { "src": "/api/logout", "dest": "/api/logout.js" },
-    { "src": "/api/me", "dest": "/api/me.js" },
-    { "src": "/api/proxy/(.*)", "dest": "/api/proxy/$1" },
-    { "src": "/login", "dest": "/public/login.html" },
-    { "src": "/(.*)", "dest": "/public/$1" }
-  ]
+  }
 }
