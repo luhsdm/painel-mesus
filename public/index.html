@@ -153,6 +153,9 @@
     <select class="input" id="accountSelect">
       <option value="__all__">📊 Todas as contas (consolidado)</option>
     </select>
+    <select class="input hidden" id="campaignSelect">
+      <option value="__all__">Todas as campanhas</option>
+    </select>
     <input type="date" class="input" id="dateFrom" />
     <span style="color:var(--muted)">até</span>
     <input type="date" class="input" id="dateTo" />
@@ -199,9 +202,11 @@ const PLATFORMS = {
 let state = {
   platform: "meta",
   account: "__all__",
+  campaign: "__all__",
   dateFrom: "",
   dateTo: "",
-  accountsByPlatform: { meta:[], google:[], instagram:[] }
+  accountsByPlatform: { meta:[], google:[], instagram:[] },
+  campaignsByAccount: {}
 };
 
 function setDefaultDates(){
@@ -456,8 +461,10 @@ function renderInstagramConsolidated(rows){
     </div>`;
 }
 
-function renderMetaDetail(rows, accountName){
-  const accountRows = rows.filter(r => r.account_name === accountName);
+function renderMetaDetail(rows, accountName, campaignName){
+  const accountRows = campaignName && campaignName !== "__all__" 
+    ? rows.filter(r => r.account_name === accountName && r.campaign === campaignName)
+    : rows.filter(r => r.account_name === accountName);
   if(!accountRows.length) return `<div class="empty">Nenhum dado para "${accountName}" no período.</div>`;
   const agg = aggregateMetaRows(accountRows);
   const adMap = new Map();
@@ -497,9 +504,10 @@ function renderMetaDetail(rows, accountName){
         ${a.instagram_permalink_url?`<a href="${a.instagram_permalink_url}" target="_blank" class="ad-link">🔗 Ver anúncio no Instagram</a>`:""}
       </div>
     </div>`;}).join("") : `<div class="empty">Sem anúncios neste período.</div>`;
+  const campaignLabel = campaignName && campaignName !== "__all__" ? `<span class="pill" style="margin-left:8px">${campaignName}</span>` : "";
   const funnel = `
     <div class="card">
-      <div class="section-title" style="margin-bottom:0">🔻 Funil de Conversão</div>
+      <div class="section-title" style="margin-bottom:0">🔻 Funil de Conversão${campaignLabel}</div>
       <div class="funnel">
         <div class="funnel-step" style="width:90%">
           <div class="step-label">Impressões</div>
@@ -762,6 +770,27 @@ function updateAccountDropdown(rows){
   if(current==="__all__" || accounts.includes(current)) sel.value = current;
 }
 
+function updateCampaignDropdown(rows, accountName){
+  const campSel = document.getElementById("campaignSelect");
+  const accountRows = rows.filter(r => r.account_name === accountName);
+  const campaigns = [...new Set(accountRows.map(r=>r.campaign).filter(Boolean))].sort();
+  state.campaignsByAccount[accountName] = campaigns;
+  const current = campSel.value;
+  campSel.innerHTML = `<option value="__all__">Todas as campanhas</option>` +
+    campaigns.map(c=>`<option value="${c.replace(/"/g,'&quot;')}">${c}</option>`).join("");
+  if(current === "__all__" || campaigns.includes(current)) campSel.value = current;
+  if(campaigns.length > 0){
+    campSel.classList.remove("hidden");
+  } else {
+    campSel.classList.add("hidden");
+  }
+}
+
+function filterByCampaign(rows, accountName, campaignName){
+  if(campaignName === "__all__") return rows.filter(r => r.account_name === accountName);
+  return rows.filter(r => r.account_name === accountName && r.campaign === campaignName);
+}
+
 async function loadData(){
   showLoader();
   const platform = state.platform;
@@ -769,11 +798,17 @@ async function loadData(){
   state.dateFrom = document.getElementById("dateFrom").value;
   state.dateTo = document.getElementById("dateTo").value;
   state.account = document.getElementById("accountSelect").value;
+  state.campaign = document.getElementById("campaignSelect").value;
   try{
     const isMeta = platform==="meta";
     const fields = isMeta ? cfg.fields.demo : cfg.fields.detail || cfg.fields.account;
     const rows = await windsorFetch(cfg.connector, fields, state.dateFrom, state.dateTo);
     updateAccountDropdown(rows);
+    if(platform==="meta" && state.account !== "__all__"){
+      updateCampaignDropdown(rows, state.account);
+    } else {
+      document.getElementById("campaignSelect").classList.add("hidden");
+    }
     showBanner("");
     let html = "";
     if(state.account === "__all__"){
@@ -781,13 +816,17 @@ async function loadData(){
       else if(platform==="google") html = renderGoogleConsolidated(rows);
       else html = renderInstagramConsolidated(rows);
     } else {
-      if(platform==="meta") html = renderMetaDetail(rows, state.account);
+      if(platform==="meta"){
+        const filteredRows = filterByCampaign(rows, state.account, state.campaign);
+        html = renderMetaDetail(filteredRows, state.account, state.campaign);
+      }
       else if(platform==="google") html = renderGoogleDetail(rows, state.account);
       else html = renderInstagramDetail(rows, state.account);
     }
     document.getElementById("content").innerHTML = html;
     if(platform==="meta" && state.account!=="__all__"){
-      drawDemoChart(rows.filter(r=>r.account_name===state.account));
+      const chartRows = filterByCampaign(rows, state.account, state.campaign);
+      drawDemoChart(chartRows);
     }
     if(platform==="instagram" && state.account!=="__all__"){
       drawIgChart(rows.filter(r=>r.account_name===state.account));
@@ -820,11 +859,13 @@ document.querySelectorAll(".tab").forEach(t=>{
     t.classList.add("active");
     state.platform = t.dataset.platform;
     document.getElementById("accountSelect").value = "__all__";
+    document.getElementById("campaignSelect").classList.add("hidden");
     loadData();
   });
 });
 document.getElementById("loadBtn").addEventListener("click", loadData);
 document.getElementById("accountSelect").addEventListener("change", loadData);
+document.getElementById("campaignSelect").addEventListener("change", loadData);
 document.getElementById("dateFrom").addEventListener("change", loadData);
 document.getElementById("dateTo").addEventListener("change", loadData);
 
